@@ -77,7 +77,7 @@
             justify-content: flex-end;
         }
         .message-bubble {
-            max-width: 60%;
+            /* max-width: 60%; */
             padding: 0.75rem 1rem;
             border-radius: 0.75rem;
             word-wrap: break-word;
@@ -220,6 +220,8 @@
 
         let currentUserId = null;
         let messageRefreshInterval = null;
+        let lastMessageCount = 0;
+        let isRefreshing = false;
 
         // Load chat details
         async function loadChat() {
@@ -266,44 +268,54 @@
 
         // Load messages
         async function loadMessages() {
+            if (isRefreshing) return;
+            isRefreshing = true;
+
             try {
                 const response = await fetchWithCSRF(`/api/chats/${chatId}`);
-                
+
                 if (response.status === 401) {
                     window.location.href = '/login';
                     return;
                 }
-                
+
                 if (!response.ok) throw new Error('Failed to load messages');
-                
+
                 const chat = await response.json();
                 const messages = chat.messages || [];
 
-                if (messages.length === 0) {
-                    messagesContainer.innerHTML = `
-                        <div style="text-align: center; color: #94a3b8; margin: auto;">
-                            <i class="bi bi-chat-dots" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
-                            <p>No messages yet. Start the conversation!</p>
-                        </div>
-                    `;
-                } else {
-                    messagesContainer.innerHTML = messages.map(msg => `
-                        <div class="message ${msg.sender_type === 'customer' || msg.user?.role === 'customer' ? 'received' : 'sent'}">
-                            <div>
-                                <div class="message-bubble">${escapeHtml(msg.content)}</div>
-                                <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                // Only update DOM if message count changed
+                if (messages.length !== lastMessageCount) {
+                    lastMessageCount = messages.length;
+
+                    if (messages.length === 0) {
+                        messagesContainer.innerHTML = `
+                            <div style="text-align: center; color: #94a3b8; margin: auto;">
+                                <i class="bi bi-chat-dots" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                <p>No messages yet. Start the conversation!</p>
                             </div>
-                        </div>
-                    `).join('');
-                    
-                    // Scroll to bottom
-                    setTimeout(() => {
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }, 100);
+                        `;
+                    } else {
+                        messagesContainer.innerHTML = messages.map(msg => `
+                            <div class="message ${msg.sender_type === 'customer' || msg.user?.role === 'customer' ? 'received' : 'sent'}">
+                                <div>
+                                    <div class="message-bubble">${escapeHtml(msg.content)}</div>
+                                    <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        // Scroll to bottom
+                        setTimeout(() => {
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }, 100);
+                    }
                 }
             } catch (error) {
                 console.error('Error loading messages:', error);
                 messagesContainer.innerHTML = `<p style="color: #ef4444; padding: 1rem;">Error loading messages</p>`;
+            } finally {
+                isRefreshing = false;
             }
         }
 
@@ -374,9 +386,9 @@
         async function initialize() {
             await loadChat();
             await loadMessages();
-            
-            // Refresh messages every 2 seconds
-            messageRefreshInterval = setInterval(loadMessages, 2000);
+
+            // Refresh messages every 5 seconds
+            messageRefreshInterval = setInterval(loadMessages, 5000);
         }
 
         initialize();

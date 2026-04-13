@@ -21,6 +21,10 @@ class ChatController extends Controller
                 ->with(['customer', 'supportAgent', 'messages'])
                 ->latest()
                 ->get();
+        } elseif ($user->role === 'admin') {
+            $chats = Chat::with(['customer', 'supportAgent', 'messages'])
+                ->latest()
+                ->get();
         } else {
             $chats = Chat::where('support_agent_id', $user->id)
                 ->with(['customer', 'supportAgent', 'messages'])

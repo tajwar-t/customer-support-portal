@@ -102,6 +102,8 @@
             border-top: 1px solid #e2e8f0;
             display: flex;
             gap: 1rem;
+            background: white;
+            border-radius: 0 0 0.75rem 0.75rem;
         }
         .chat-input-area input {
             flex: 1;
@@ -109,11 +111,16 @@
             border-radius: 0.5rem;
             padding: 0.75rem 1rem;
             font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
         }
         .chat-input-area input:focus {
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .chat-input-area input:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
         }
         .btn-send {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -124,10 +131,16 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
-        .btn-send:hover {
+        .btn-send:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         .btn-back {
             background: white;
@@ -203,8 +216,10 @@
         const chatInfo = document.getElementById('chat-info');
 
         // Get CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
                          document.querySelector('input[name="_token"]')?.value;
+
+        console.log('CSRF Token:', csrfToken ? 'Found' : 'Not found');
 
         const fetchWithCSRF = (url, options = {}) => {
             return fetch(url, {
@@ -213,6 +228,7 @@
                 headers: {
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
                     ...options.headers,
                 }
             });
@@ -296,14 +312,20 @@
                             </div>
                         `;
                     } else {
-                        messagesContainer.innerHTML = messages.map(msg => `
-                            <div class="message ${msg.sender_type === 'customer' || msg.user?.role === 'customer' ? 'received' : 'sent'}">
-                                <div>
-                                    <div class="message-bubble">${escapeHtml(msg.content)}</div>
-                                    <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                        messagesContainer.innerHTML = messages.map(msg => {
+                            const isCurrentUser = msg.user_id === {{ auth()->id() }};
+                            const messageClass = isCurrentUser ? 'sent' : 'received';
+                            
+                            return `
+                                <div class="message ${messageClass}">
+                                    <div>
+                                        ${!isCurrentUser ? `<small style="color: #64748b; margin-left: 0.5rem; margin-bottom: 0.25rem; display: block;">${escapeHtml(msg.user?.name || 'Unknown')}</small>` : ''}
+                                        <div class="message-bubble">${escapeHtml(msg.content)}</div>
+                                        <div class="message-time">${new Date(msg.created_at).toLocaleTimeString()}</div>
+                                    </div>
                                 </div>
-                            </div>
-                        `).join('');
+                            `;
+                        }).join('');
 
                         // Scroll to bottom
                         setTimeout(() => {
@@ -322,8 +344,12 @@
         // Send message
         async function sendMessage() {
             const content = messageInput.value.trim();
-            if (!content) return;
+            if (!content) {
+                console.log('Empty message, not sending');
+                return;
+            }
 
+            console.log('Sending message:', content);
             const originalContent = messageInput.value;
             messageInput.value = '';
             messageInput.disabled = true;
@@ -338,21 +364,26 @@
                     body: JSON.stringify({ content })
                 });
 
+                console.log('Response status:', response.status);
+
                 if (response.status === 401) {
                     window.location.href = '/login';
                     return;
                 }
 
                 if (response.ok) {
+                    const message = await response.json();
+                    console.log('Message sent successfully:', message);
                     await loadMessages();
                 } else {
                     const error = await response.json();
+                    console.error('Error response:', error);
                     alert('Error sending message: ' + (error.message || 'Unknown error'));
                     messageInput.value = originalContent;
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
-                alert('Error sending message');
+                alert('Error sending message: ' + error.message);
                 messageInput.value = originalContent;
             } finally {
                 messageInput.disabled = false;
@@ -379,17 +410,52 @@
                 '"': '&quot;',
                 "'": '&#039;'
             };
-            return text.replace(/[&<>"']/g, m => map[m]);
+            return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
         // Initial load
         async function initialize() {
+            console.log('Initializing chat with ID:', chatId);
             await loadChat();
             await loadMessages();
 
             // Refresh messages every 5 seconds
             messageRefreshInterval = setInterval(loadMessages, 5000);
+            console.log('Chat initialized successfully');
         }
+
+        // Ensure DOM is loaded before attaching event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, attaching event listeners');
+            
+            // Verify elements exist
+            if (!messageInput) {
+                console.error('Message input not found!');
+                return;
+            }
+            if (!sendBtn) {
+                console.error('Send button not found!');
+                return;
+            }
+
+            // Attach event listeners
+            sendBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('Send button clicked');
+                sendMessage();
+            });
+
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('Enter key pressed');
+                    sendMessage();
+                }
+            });
+
+            // Focus input on load
+            messageInput.focus();
+        });
 
         initialize();
 

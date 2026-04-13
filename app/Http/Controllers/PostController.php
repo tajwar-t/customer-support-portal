@@ -64,8 +64,10 @@ class PostController extends Controller
     /**
      * Get a specific post.
      */
-    public function show(Post $post)
+    public function show($slug)
     {
+        $post = Post::where('slug', $slug)->firstOrFail();
+        
         // Increment view count
         $post->increment('views_count');
 

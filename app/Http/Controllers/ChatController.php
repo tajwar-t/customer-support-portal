@@ -93,11 +93,18 @@ class ChatController extends Controller
             'content' => 'required|string',
         ]);
 
+        $user = Auth::user();
+        $senderType = match($user->role) {
+            'customer' => 'customer',
+            'admin' => 'admin',
+            default => 'support',
+        };
+
         $message = Message::create([
             'chat_id' => $chat->id,
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'content' => $validated['content'],
-            'sender_type' => Auth::user()->role === 'customer' ? 'customer' : 'support',
+            'sender_type' => $senderType,
         ]);
 
         return response()->json($message->load('user'), 201);

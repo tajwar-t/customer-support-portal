@@ -12,8 +12,10 @@ class CommentController extends Controller
     /**
      * Get comments for a post.
      */
-    public function index(Post $post)
+    public function index($slug)
     {
+        $post = Post::where('slug', $slug)->firstOrFail();
+        
         $comments = $post->comments()
             ->where('is_approved', true)
             ->with('user')
@@ -26,8 +28,10 @@ class CommentController extends Controller
     /**
      * Add a comment to a post.
      */
-    public function store(Request $request, Post $post)
+    public function store(Request $request, $slug)
     {
+        $post = Post::where('slug', $slug)->firstOrFail();
+        
         $validated = $request->validate([
             'content' => 'required|string|max:5000',
         ]);
@@ -36,7 +40,7 @@ class CommentController extends Controller
             'post_id' => $post->id,
             'user_id' => Auth::id(),
             'content' => $validated['content'],
-            'is_approved' => true, // Auto-approve for now
+            'is_approved' => true,
         ]);
 
         return response()->json($comment->load('user'), 201);

@@ -218,5 +218,182 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const postSlug = window.location.pathname.split('/').pop();
+        const postContentMain = document.querySelector('.post-content-main');
+        const commentsSection = document.querySelector('.comments-section');
+        const commentForm = document.querySelector('.comment-form');
+        const commentTextarea = commentForm.querySelector('textarea');
+        const submitBtn = commentForm.querySelector('.btn-submit');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        const fetchWithCSRF = (url, options = {}) => {
+            return fetch(url, {
+                ...options,
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    ...options.headers,
+                }
+            });
+        };
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        async function loadPost() {
+            try {
+                const response = await fetchWithCSRF(`/api/posts/${postSlug}`);
+                if (!response.ok) throw new Error('Failed to load post');
+
+                const post = await response.json();
+                
+                // Update post content
+                postContentMain.innerHTML = `
+                    <div class="post-meta-info">
+                        <div class="post-meta-item">
+                            <i class="bi bi-person"></i>
+                            <span>${escapeHtml(post.user?.name || 'Unknown')}</span>
+                        </div>
+                        <div class="post-meta-item">
+                            <i class="bi bi-calendar"></i>
+                            <span>${new Date(post.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div class="post-meta-item">
+                            <i class="bi bi-eye"></i>
+                            <span>${post.views_count || 0} views</span>
+                        </div>
+                        ${post.category ? `
+                        <div class="post-meta-item">
+                            <i class="bi bi-tag"></i>
+                            <span style="text-transform: capitalize;">${escapeHtml(post.category)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <h2 class="post-title">${escapeHtml(post.title)}</h2>
+                    <div class="post-body">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+                `;
+
+                // Load comments
+                await loadComments(post);
+            } catch (error) {
+                console.error('Error loading post:', error);
+                postContentMain.innerHTML = `
+                    <div class="post-meta-info">
+                        <p style="color: #ef4444;">Error loading post: ${escapeHtml(error.message)}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadComments(post) {
+            const comments = post.comments || [];
+            let commentsHTML = `<h3 class="comments-title"><i class="bi bi-chat-dots"></i> Comments (${comments.length})</h3>`;
+
+            if (comments.length > 0) {
+                comments.forEach(comment => {
+                    const authorName = comment.user?.name || 'Unknown';
+                    commentsHTML += `
+                        <div class="comment">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
+                                    ${getInitials(authorName)}
+                                </div>
+                                <div>
+                                    <div class="comment-author">${escapeHtml(authorName)}</div>
+                                    <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
+                                </div>
+                            </div>
+                            <div class="comment-body">${escapeHtml(comment.content).replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                commentsHTML += `
+                    <div class="empty-comments">
+                        <i class="bi bi-chat-left-dots" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <p>No comments yet. Be the first to share your thoughts!</p>
+                    </div>
+                `;
+            }
+
+            // Add comment form
+            commentsHTML += `
+                <div class="comment-form" style="margin-top: 1.5rem;">
+                    <textarea rows="4" placeholder="Share your thoughts on this post..." id="comment-input"></textarea>
+                    <button class="btn-submit" id="comment-submit"><i class="bi bi-send"></i> Post Comment</button>
+                </div>
+            `;
+
+            commentsSection.innerHTML = commentsHTML;
+
+            // Attach event listeners to new form
+            const commentInput = document.getElementById('comment-input');
+            const submitButton = document.getElementById('comment-submit');
+
+            submitButton.addEventListener('click', submitComment);
+            commentInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    submitComment();
+                }
+            });
+        }
+
+        async function submitComment() {
+            const commentInput = document.getElementById('comment-input');
+            const content = commentInput.value.trim();
+
+            if (!content) {
+                alert('Please enter a comment');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Posting...';
+
+            try {
+                const response = await fetchWithCSRF(`/api/posts/${postSlug}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                if (response.ok) {
+                    commentInput.value = '';
+                    // Reload the post to show new comment
+                    await loadPost();
+                } else {
+                    const error = await response.json();
+                    alert('Error posting comment: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                alert('Error posting comment');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-send"></i> Post Comment';
+            }
+        }
+
+        // Load post on page load
+        loadPost();
+    </script>
 </body>
 </html>

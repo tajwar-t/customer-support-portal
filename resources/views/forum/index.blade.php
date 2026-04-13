@@ -183,5 +183,99 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const postsListEl = document.querySelector('.posts-list');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        const fetchWithCSRF = (url, options = {}) => {
+            return fetch(url, {
+                ...options,
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    ...options.headers,
+                }
+            });
+        };
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        async function loadPosts() {
+            try {
+                const response = await fetchWithCSRF('/api/posts');
+                if (!response.ok) throw new Error('Failed to load posts');
+
+                const data = await response.json();
+                const posts = data.data || data;
+
+                if (posts && posts.length > 0) {
+                    postsListEl.innerHTML = posts.map(post => {
+                        const authorName = post.user?.name || 'Unknown';
+                        const commentCount = post.comments?.length || 0;
+                        const excerpt = post.content.substring(0, 150) + (post.content.length > 150 ? '...' : '');
+                        
+                        return `
+                            <a href="/forum/${post.slug}" class="post-card">
+                                <div class="post-avatar">${getInitials(authorName)}</div>
+                                <div class="post-content">
+                                    <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                                    <p class="post-excerpt">${escapeHtml(excerpt)}</p>
+                                    <div class="post-meta">
+                                        <span class="post-meta-item">
+                                            <i class="bi bi-person"></i> ${escapeHtml(authorName)}
+                                        </span>
+                                        <span class="post-meta-item">
+                                            <i class="bi bi-calendar"></i> ${new Date(post.created_at).toLocaleDateString()}
+                                        </span>
+                                        <span class="post-meta-item">
+                                            <i class="bi bi-chat-dots"></i> ${commentCount} comment${commentCount !== 1 ? 's' : ''}
+                                        </span>
+                                        <span class="post-meta-item">
+                                            <i class="bi bi-eye"></i> ${post.views_count || 0} views
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                    }).join('');
+                } else {
+                    postsListEl.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-chat-dots"></i>
+                            <p>No forum posts yet</p>
+                            <a href="/forum/create" class="btn btn-primary">
+                                <i class="bi bi-pencil"></i> Be the first to post
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                postsListEl.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>Error loading posts: ${escapeHtml(error.message)}</p>
+                        <button onclick="loadPosts()" class="btn btn-primary">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        loadPosts();
+    </script>
 </body>
 </html>

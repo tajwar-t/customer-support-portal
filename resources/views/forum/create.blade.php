@@ -152,9 +152,7 @@
         </div>
 
         <div class="form-card">
-            <form method="POST" action="{{ route('forum.store') }}">
-                @csrf
-
+            <form id="create-post-form">
                 <div class="form-group">
                     <label class="form-label">Post Title</label>
                     <input type="text" class="form-control" name="title" placeholder="Enter an engaging title for your post" required>
@@ -191,5 +189,53 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const form = document.getElementById('create-post-form');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = {
+                title: formData.get('title'),
+                category: formData.get('category') || 'general',
+                content: formData.get('content')
+            };
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Publishing...';
+
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const post = await response.json();
+                    window.location.href = `/forum/${post.slug}`;
+                } else {
+                    const error = await response.json();
+                    alert('Error creating post: ' + (error.message || 'Validation failed'));
+                    console.error('Error:', error);
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                alert('Error creating post');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    </script>
 </body>
 </html>

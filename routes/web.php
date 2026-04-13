@@ -28,13 +28,13 @@ Route::middleware('auth')->group(function () {
         return view('forum.index');
     })->name('forum.index');
 
-    Route::get('/forum/{slug}', function () {
-        return view('forum.show');
-    })->name('forum.show');
-
     Route::get('/forum/create', function () {
         return view('forum.create');
     })->name('forum.create');
+
+    Route::get('/forum/{slug}', function () {
+        return view('forum.show');
+    })->name('forum.show');
 });
 
 // API routes with session authentication and JSON error responses
@@ -50,9 +50,11 @@ Route::prefix('api')->middleware(AuthenticateApi::class)->group(function () {
 
     // Forum API routes
     Route::post('/posts', [PostController::class, 'store']);
+    Route::get('/posts/{slug}', [PostController::class, 'show']);
     Route::put('/posts/{post}', [PostController::class, 'update']);
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
+    Route::post('/posts/{slug}/comments', [CommentController::class, 'store']);
+    Route::get('/posts/{slug}/comments', [CommentController::class, 'index']);
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 

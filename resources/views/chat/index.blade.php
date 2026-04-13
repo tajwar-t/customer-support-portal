@@ -134,6 +134,10 @@
             transition: all 0.3s ease;
             text-decoration: none;
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-right: 3.5rem;
         }
 
         .chat-item:hover {
@@ -154,6 +158,35 @@
             opacity: 0.95;
             font-size: 0.9rem;
             line-height: 1.5;
+        }
+
+        .delete-chat-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .delete-chat-btn:hover {
+            background: rgba(239, 68, 68, 0.8);
+            border-color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        .delete-chat-btn i {
+            font-size: 1rem;
+            color: white;
         }
 
         .status-badge {
@@ -400,6 +433,24 @@
             return colors[status] || '#6366f1';
         }
 
+        async function deleteChat(chatId) {
+            try {
+                const response = await fetchWithCSRF(`/api/chats/${chatId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    await loadChats();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Failed to delete chat'));
+                }
+            } catch (error) {
+                console.error('Error deleting chat:', error);
+                alert('Error deleting chat');
+            }
+        }
+
         async function loadChats() {
             try {
                 const response = await fetchWithCSRF('/api/chats');
@@ -416,17 +467,37 @@
                 if (Array.isArray(chats) && chats.length > 0) {
                     chatListEl.innerHTML = chats.map(chat => {
                         const status = chat.status || 'open';
+                        const canDelete = {{ auth()->id() }} === chat.customer_id || '{{ auth()->user()->role }}' === 'admin';
                         return `
-                            <a href="/chat/${chat.id}" class="chat-item">
-                                <span class="status-badge">${status.toUpperCase()}</span>
-                                <h5>${escapeHtml(chat.subject)}</h5>
-                                <p>${escapeHtml(chat.description.substring(0, 100))}${chat.description.length > 100 ? '...' : ''}</p>
-                                <p style="margin-top: 0.75rem; font-size: 0.85rem; opacity: 0.9;">
-                                    <i class="bi bi-calendar"></i> ${new Date(chat.created_at).toLocaleDateString()}
-                                </p>
-                            </a>
+                            <div style="position: relative;">
+                                <a href="/chat/${chat.id}" class="chat-item">
+                                    <span class="status-badge">${status.toUpperCase()}</span>
+                                    <h5>${escapeHtml(chat.subject)}</h5>
+                                    <p>${escapeHtml(chat.description.substring(0, 100))}${chat.description.length > 100 ? '...' : ''}</p>
+                                    <p style="margin-top: 0.75rem; font-size: 0.85rem; opacity: 0.9;">
+                                        <i class="bi bi-calendar"></i> ${new Date(chat.created_at).toLocaleDateString()}
+                                    </p>
+                                    ${canDelete ? `
+                                        <button class="delete-chat-btn" data-chat-id="${chat.id}" title="Delete chat" onclick="event.preventDefault(); event.stopPropagation();">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    ` : ''}
+                                </a>
+                            </div>
                         `;
                     }).join('');
+
+                    // Attach delete event listeners
+                    document.querySelectorAll('.delete-chat-btn').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const chatId = btn.dataset.chatId;
+                            if (confirm('Are you sure you want to delete this chat? This action cannot be undone.')) {
+                                await deleteChat(chatId);
+                            }
+                        });
+                    });
                 } else {
                     chatListEl.innerHTML = `
                         <div class="empty-state">

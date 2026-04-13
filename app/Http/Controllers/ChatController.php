@@ -79,16 +79,22 @@ class ChatController extends Controller
 
         $user = Auth::user();
         
-        // If agent changes status, requires admin approval
+        // If agent changes status, store as pending and requires admin approval
         if ($user->role === 'support_agent' && isset($validated['status'])) {
+            $validated['pending_status'] = $validated['status'];
             $validated['requires_admin_approval'] = true;
             $validated['admin_approved_at'] = null;
+            // Don't update the actual status yet - keep current status
+            unset($validated['status']);
         }
         
-        // Admin can approve directly
+        // Admin can approve directly and apply pending status
         if ($user->role === 'admin') {
             $validated['requires_admin_approval'] = false;
             $validated['admin_approved_at'] = now();
+            if (isset($validated['status'])) {
+                $validated['pending_status'] = null;
+            }
         }
 
         $chat->update($validated);
@@ -102,13 +108,20 @@ class ChatController extends Controller
     public function approveStatus(Chat $chat)
     {
         $this->authorize('update', $chat);
-        
+
         $user = Auth::user();
         if ($user->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        if (!$chat->requires_admin_approval || !$chat->pending_status) {
+            return response()->json(['message' => 'No pending status to approve'], 400);
+        }
+
+        // Apply the pending status
         $chat->update([
+            'status' => $chat->pending_status,
+            'pending_status' => null,
             'requires_admin_approval' => false,
             'admin_approved_at' => now(),
         ]);

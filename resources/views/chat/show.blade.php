@@ -411,6 +411,17 @@
                 </div>
             </div>
 
+            <!-- Status Approval (for admin) -->
+            <div id="status-approval" style="display: none;">
+                <div class="agent-assign-section">
+                    <h6 style="color: var(--text-primary); font-weight: 700; margin-bottom: 0.5rem;">Approve Status Change</h6>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Agent requested status change. Click to approve.</p>
+                    <button id="approve-status-btn" class="btn-back" style="width: 100%; text-align: center; justify-content: center; background: var(--gradient); color: white; border: none; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                        <i class="bi bi-check-circle"></i> Approve Status Change
+                    </button>
+                </div>
+            </div>
+
             <!-- Review Section (for customers) -->
             <div id="review-section" style="display: none;">
                 <div class="review-section">
@@ -586,6 +597,7 @@
         function setupRoleBasedUI(chat) {
             const statusManagement = document.getElementById('status-management');
             const agentAssignment = document.getElementById('agent-assignment');
+            const statusApproval = document.getElementById('status-approval');
             const reviewSection = document.getElementById('review-section');
             const statusSelect = document.getElementById('status-select');
             const pendingBadge = document.getElementById('pending-approval-badge');
@@ -595,6 +607,7 @@
             // Hide all by default
             statusManagement.style.display = 'none';
             agentAssignment.style.display = 'none';
+            statusApproval.style.display = 'none';
             reviewSection.style.display = 'none';
 
             if (currentUserRole === 'support_agent') {
@@ -602,7 +615,7 @@
                 statusManagement.style.display = 'block';
                 statusSelect.style.display = 'block';
                 statusSelect.value = chat.status;
-                
+
                 if (chat.requires_admin_approval) {
                     pendingBadge.style.display = 'block';
                 } else {
@@ -613,10 +626,20 @@
                     await updateStatus(chat.id, e.target.value);
                 });
             } else if (currentUserRole === 'admin') {
-                // Admin can assign agents
+                // Admin can assign agents and approve status changes
                 console.log('Admin detected - showing agent assignment');
                 agentAssignment.style.display = 'block';
                 loadAgents(chat);
+
+                // Show approval button if there's a pending status change
+                if (chat.requires_admin_approval && chat.pending_status) {
+                    statusApproval.style.display = 'block';
+                    const approveBtn = document.getElementById('approve-status-btn');
+                    approveBtn.innerHTML = `<i class="bi bi-check-circle"></i> Approve: ${chat.pending_status.replace('_', ' ').toUpperCase()}`;
+                    approveBtn.onclick = async () => {
+                        await approveStatusAction(chat.id);
+                    };
+                }
             } else if (currentUserRole === 'customer' && chat.status === 'closed') {
                 // Customers can review closed chats
                 const existingReview = chat.review;
@@ -710,6 +733,27 @@
             } catch (error) {
                 console.error('Error assigning agent:', error);
                 alert('Error assigning agent');
+            }
+        }
+
+        // Approve status change
+        async function approveStatusAction(chatId) {
+            try {
+                const response = await fetchWithCSRF(`/api/chats/${chatId}/approve-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    alert('Status change approved!');
+                    await loadChat();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Failed to approve status'));
+                }
+            } catch (error) {
+                console.error('Error approving status:', error);
+                alert('Error approving status');
             }
         }
 

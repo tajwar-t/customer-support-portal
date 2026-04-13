@@ -15,6 +15,7 @@ class Chat extends Model
         'customer_id',
         'support_agent_id',
         'status',
+        'pending_status',
         'subject',
         'description',
         'requires_admin_approval',

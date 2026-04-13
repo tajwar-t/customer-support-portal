@@ -1,165 +1,295 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="light">
 <head>
     <title>Forum Post</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
-        }
         :root {
             --primary: #6366f1;
-            --secondary: #4f46e5;
-            --dark: #0f172a;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            --border: #e2e8f0;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --shadow-hover: rgba(99, 102, 241, 0.15);
+            --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         }
+
+        [data-theme="dark"] {
+            --bg-primary: #1e293b;
+            --bg-secondary: #0f172a;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #64748b;
+            --border: #334155;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --shadow-hover: rgba(99, 102, 241, 0.25);
+            --gradient: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             min-height: 100vh;
         }
+
         .post-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
+
         .post-header {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 2rem;
+            background: var(--bg-primary);
+            border-radius: 1rem;
+            padding: 1.5rem 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px var(--shadow);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid var(--border);
         }
+
         .post-header h1 {
-            color: var(--dark);
-            font-weight: 700;
+            color: var(--text-primary);
+            font-weight: 800;
             font-size: 1.75rem;
             margin: 0;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.65rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .theme-toggle i {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+        }
+
         .btn-back {
-            background: white;
-            border: 1px solid #e2e8f0;
-            color: var(--dark);
-            padding: 0.65rem 1.25rem;
-            border-radius: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
         .btn-back:hover {
-            background: #f8fafc;
-            border-color: var(--primary);
-            color: var(--primary);
+            background: var(--border);
+            transform: translateY(-2px);
         }
+
         .post-content-main {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 2rem;
+            background: var(--bg-primary);
+            border-radius: 1rem;
+            padding: 2.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border);
             animation: slideIn 0.5s ease-out;
         }
+
         .post-meta-info {
             display: flex;
             gap: 2rem;
+            flex-wrap: wrap;
             padding-bottom: 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.75rem;
             font-size: 0.9rem;
-            color: #64748b;
+            color: var(--text-secondary);
         }
+
         .post-meta-item {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
+
         .post-title {
-            color: var(--dark);
-            font-weight: 700;
-            font-size: 1.5rem;
-            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 1.75rem;
+            margin: 0 0 1.25rem 0;
+            line-height: 1.3;
         }
+
         .post-body {
-            color: #475569;
-            line-height: 1.75;
-            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1.05rem;
             margin-bottom: 1.5rem;
+            white-space: pre-wrap;
         }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.35rem 0.875rem;
+            border-radius: 0.625rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .comments-section {
-            background: white;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background: var(--bg-primary);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border);
             animation: slideIn 0.5s ease-out 0.1s both;
         }
+
         .comments-title {
-            color: var(--dark);
+            color: var(--text-primary);
             font-weight: 700;
-            font-size: 1.25rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.35rem;
+            margin-bottom: 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+
         .comment {
-            padding: 1rem;
+            padding: 1.25rem;
             border-left: 3px solid var(--primary);
-            background: #f8fafc;
-            border-radius: 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 0.75rem;
             margin-bottom: 1rem;
+            transition: all 0.3s ease;
         }
+
+        .comment:hover {
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
         .comment-author {
             font-weight: 600;
-            color: var(--dark);
+            color: var(--text-primary);
             margin-bottom: 0.25rem;
         }
+
         .comment-time {
             font-size: 0.85rem;
-            color: #94a3b8;
+            color: var(--text-tertiary);
             margin-bottom: 0.5rem;
         }
+
         .comment-body {
-            color: #475569;
-            line-height: 1.6;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            white-space: pre-wrap;
         }
+
         .empty-comments {
             text-align: center;
-            padding: 2rem;
-            color: #94a3b8;
+            padding: 2.5rem;
+            color: var(--text-tertiary);
         }
+
+        .empty-comments i {
+            font-size: 3rem;
+            opacity: 0.5;
+            margin-bottom: 0.75rem;
+        }
+
         .comment-form {
-            background: #f8fafc;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin-top: 1.5rem;
+            background: var(--bg-secondary);
+            padding: 1.75rem;
+            border-radius: 0.875rem;
+            margin-top: 1.75rem;
+            border: 1px solid var(--border);
         }
+
         .comment-form textarea {
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.75rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
             font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
             margin-bottom: 1rem;
             width: 100%;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s ease;
         }
+
         .comment-form textarea:focus {
             border-color: var(--primary);
             outline: none;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
+
         .btn-submit {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: var(--gradient);
             color: white;
             border: none;
-            padding: 0.65rem 1.25rem;
-            border-radius: 0.5rem;
+            padding: 0.875rem 1.75rem;
+            border-radius: 0.75rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
-        .btn-submit:hover {
+
+        .btn-submit:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
         }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -170,15 +300,37 @@
                 transform: translateY(0);
             }
         }
+
+        @media (max-width: 768px) {
+            .post-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .post-meta-info {
+                gap: 1rem;
+                justify-content: center;
+            }
+
+            .post-title {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="post-container">
         <div class="post-header">
             <h1><i class="bi bi-chat-left-text"></i> Forum Post</h1>
-            <a href="{{ route('forum.index') }}" class="btn-back">
-                <i class="bi bi-arrow-left"></i> Back to Forum
-            </a>
+            <div class="button-group">
+                <button class="theme-toggle" id="theme-toggle" title="Toggle theme">
+                    <i class="bi bi-moon-fill"></i>
+                </button>
+                <a href="{{ route('forum.index') }}" class="btn-back">
+                    <i class="bi bi-arrow-left"></i> Back to Forum
+                </a>
+            </div>
         </div>
 
         <div class="post-content-main">
@@ -206,25 +358,39 @@
         <div class="comments-section">
             <h3 class="comments-title"><i class="bi bi-chat-dots"></i> Comments</h3>
             <div class="empty-comments">
-                <i class="bi bi-chat-left-dots" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                <i class="bi bi-chat-left-dots"></i>
                 <p>No comments yet. Be the first to share your thoughts!</p>
             </div>
 
             <div class="comment-form">
-                <textarea rows="4" placeholder="Share your thoughts on this post..."></textarea>
-                <button class="btn-submit"><i class="bi bi-send"></i> Post Comment</button>
+                <textarea rows="4" placeholder="Share your thoughts on this post..." id="comment-input"></textarea>
+                <button class="btn-submit" id="comment-submit"><i class="bi bi-send"></i> Post Comment</button>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        const themeIcon = themeToggle.querySelector('i');
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeIcon.className = savedTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.className = newTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+        });
+
         const postSlug = window.location.pathname.split('/').pop();
         const postContentMain = document.querySelector('.post-content-main');
         const commentsSection = document.querySelector('.comments-section');
-        const commentForm = document.querySelector('.comment-form');
-        const commentTextarea = commentForm.querySelector('textarea');
-        const submitBtn = commentForm.querySelector('.btn-submit');
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
         const fetchWithCSRF = (url, options = {}) => {
@@ -254,41 +420,45 @@
             return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         }
 
+        function getCategoryColor(category) {
+            const colors = {
+                'general': '#6366f1',
+                'support': '#10b981',
+                'features': '#f59e0b',
+                'announcements': '#ef4444'
+            };
+            return colors[category] || '#6366f1';
+        }
+
         async function loadPost() {
             try {
                 const response = await fetchWithCSRF(`/api/posts/${postSlug}`);
                 if (!response.ok) throw new Error('Failed to load post');
 
                 const post = await response.json();
+                const category = post.category ? `<span class="category-badge" style="color: ${getCategoryColor(post.category)}; background: ${getCategoryColor(post.category)}20; border: 1px solid ${getCategoryColor(post.category)};">${escapeHtml(post.category)}</span>` : '';
                 
-                // Update post content
                 postContentMain.innerHTML = `
                     <div class="post-meta-info">
                         <div class="post-meta-item">
-                            <i class="bi bi-person"></i>
+                            <i class="bi bi-person-circle"></i>
                             <span>${escapeHtml(post.user?.name || 'Unknown')}</span>
                         </div>
                         <div class="post-meta-item">
-                            <i class="bi bi-calendar"></i>
+                            <i class="bi bi-calendar3"></i>
                             <span>${new Date(post.created_at).toLocaleDateString()}</span>
                         </div>
                         <div class="post-meta-item">
                             <i class="bi bi-eye"></i>
                             <span>${post.views_count || 0} views</span>
                         </div>
-                        ${post.category ? `
-                        <div class="post-meta-item">
-                            <i class="bi bi-tag"></i>
-                            <span style="text-transform: capitalize;">${escapeHtml(post.category)}</span>
-                        </div>
-                        ` : ''}
+                        ${category ? `<div class="post-meta-item">${category}</div>` : ''}
                     </div>
 
                     <h2 class="post-title">${escapeHtml(post.title)}</h2>
-                    <div class="post-body">${escapeHtml(post.content).replace(/\n/g, '<br>')}</div>
+                    <div class="post-body">${escapeHtml(post.content)}</div>
                 `;
 
-                // Load comments
                 await loadComments(post);
             } catch (error) {
                 console.error('Error loading post:', error);
@@ -309,8 +479,8 @@
                     const authorName = comment.user?.name || 'Unknown';
                     commentsHTML += `
                         <div class="comment">
-                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                                <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 700; flex-shrink: 0;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.875rem;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);">
                                     ${getInitials(authorName)}
                                 </div>
                                 <div>
@@ -318,22 +488,21 @@
                                     <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
                                 </div>
                             </div>
-                            <div class="comment-body">${escapeHtml(comment.content).replace(/\n/g, '<br>')}</div>
+                            <div class="comment-body">${escapeHtml(comment.content)}</div>
                         </div>
                     `;
                 });
             } else {
                 commentsHTML += `
                     <div class="empty-comments">
-                        <i class="bi bi-chat-left-dots" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                        <i class="bi bi-chat-left-dots"></i>
                         <p>No comments yet. Be the first to share your thoughts!</p>
                     </div>
                 `;
             }
 
-            // Add comment form
             commentsHTML += `
-                <div class="comment-form" style="margin-top: 1.5rem;">
+                <div class="comment-form" style="margin-top: 1.75rem;">
                     <textarea rows="4" placeholder="Share your thoughts on this post..." id="comment-input"></textarea>
                     <button class="btn-submit" id="comment-submit"><i class="bi bi-send"></i> Post Comment</button>
                 </div>
@@ -341,7 +510,6 @@
 
             commentsSection.innerHTML = commentsHTML;
 
-            // Attach event listeners to new form
             const commentInput = document.getElementById('comment-input');
             const submitButton = document.getElementById('comment-submit');
 
@@ -356,6 +524,7 @@
 
         async function submitComment() {
             const commentInput = document.getElementById('comment-input');
+            const submitBtn = document.getElementById('comment-submit');
             const content = commentInput.value.trim();
 
             if (!content) {
@@ -377,7 +546,6 @@
 
                 if (response.ok) {
                     commentInput.value = '';
-                    // Reload the post to show new comment
                     await loadPost();
                 } else {
                     const error = await response.json();
@@ -392,7 +560,6 @@
             }
         }
 
-        // Load post on page load
         loadPost();
     </script>
 </body>

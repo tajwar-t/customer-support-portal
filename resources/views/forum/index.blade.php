@@ -233,7 +233,10 @@
             <h1><i class="bi bi-chat-left-text"></i> Forum</h1>
             <p style="margin-top: 0.5rem; color: var(--text-secondary);">Community discussions and support</p>
         </div>
-        <div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="theme-toggle" id="theme-toggle" title="Toggle theme" style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 0.625rem; padding: 0.65rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-moon-fill" style="font-size: 1.25rem; color: var(--text-primary);"></i>
+            </button>
             <a href="{{ route('forum.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> Create Post
             </a>

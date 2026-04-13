@@ -17,6 +17,13 @@ class Chat extends Model
         'status',
         'subject',
         'description',
+        'requires_admin_approval',
+        'admin_approved_at',
+    ];
+
+    protected $casts = [
+        'requires_admin_approval' => 'boolean',
+        'admin_approved_at' => 'datetime',
     ];
 
     /**
@@ -41,5 +48,13 @@ class Chat extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    /**
+     * Get the review for this chat.
+     */
+    public function review()
+    {
+        return $this->hasOne(Review::class);
     }
 }

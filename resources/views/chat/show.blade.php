@@ -145,7 +145,7 @@
         }
 
         .message-bubble {
-            max-width: 70%;
+            /* max-width: 70%; */
             padding: 0.875rem 1.25rem;
             border-radius: 1rem;
             word-wrap: break-word;
@@ -284,6 +284,72 @@
             text-transform: uppercase;
         }
 
+        .status-select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.625rem;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            width: 100%;
+            margin-top: 0.5rem;
+            cursor: pointer;
+        }
+
+        .status-select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .agent-assign-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 0.625rem;
+            border: 1px solid var(--border);
+        }
+
+        .review-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 0.625rem;
+            border: 1px solid var(--border);
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .star-rating i {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            transition: color 0.2s;
+        }
+
+        .star-rating i.active {
+            color: #fbbf24;
+        }
+
+        .star-rating i:hover {
+            color: #fbbf24;
+        }
+
+        .pending-badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: #fbbf24;
+            color: #000;
+            margin-top: 0.5rem;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -320,6 +386,47 @@
             <h6 class="mt-3 mb-2" style="color: var(--text-primary); font-weight: 700;">Chat Info</h6>
             <div id="chat-info">
                 <p style="font-size: 0.9rem; color: var(--text-tertiary); margin: 0;">Loading...</p>
+            </div>
+            
+            <!-- Status Management (for agents) -->
+            <div id="status-management" style="display: none;">
+                <h6 class="mt-3 mb-2" style="color: var(--text-primary); font-weight: 700;">Manage Status</h6>
+                <select id="status-select" class="status-select" style="display: none;">
+                    <option value="open">Open</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="closed">Closed</option>
+                </select>
+                <div id="pending-approval-badge" style="display: none;">
+                    <span class="pending-badge"><i class="bi bi-clock"></i> Awaiting Admin Approval</span>
+                </div>
+            </div>
+
+            <!-- Agent Assignment (for admin) -->
+            <div id="agent-assignment" style="display: none;">
+                <div class="agent-assign-section">
+                    <h6 style="color: var(--text-primary); font-weight: 700; margin-bottom: 0.5rem;">Assign Agent</h6>
+                    <select id="agent-select" class="status-select">
+                        <option value="">Select Agent...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Review Section (for customers) -->
+            <div id="review-section" style="display: none;">
+                <div class="review-section">
+                    <h6 style="color: var(--text-primary); font-weight: 700; margin-bottom: 0.5rem;">Leave a Review</h6>
+                    <div class="star-rating" id="star-rating">
+                        <i class="bi bi-star" data-rating="1"></i>
+                        <i class="bi bi-star" data-rating="2"></i>
+                        <i class="bi bi-star" data-rating="3"></i>
+                        <i class="bi bi-star" data-rating="4"></i>
+                        <i class="bi bi-star" data-rating="5"></i>
+                    </div>
+                    <textarea id="review-comment" class="status-select" rows="3" placeholder="Share your experience (optional)..." style="resize: vertical; min-height: 80px;"></textarea>
+                    <button id="submit-review" class="btn-back" style="width: 100%; margin-top: 0.5rem; text-align: center; justify-content: center;">
+                        <i class="bi bi-send"></i> Submit Review
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -372,6 +479,7 @@
         });
 
         const chatId = {{ $chatId }};
+        const currentUserRole = '{{ auth()->user()->role }}';
         const messagesContainer = document.getElementById('messages-container');
         const messageInput = document.getElementById('message-input');
         const sendBtn = document.getElementById('send-btn');
@@ -400,6 +508,8 @@
         let messageRefreshInterval = null;
         let lastMessageCount = 0;
         let isRefreshing = false;
+        let selectedRating = 0;
+        let agents = [];
 
         function escapeHtml(text) {
             const map = {
@@ -434,14 +544,19 @@
                 if (!response.ok) throw new Error('Failed to load chat');
 
                 const chat = await response.json();
+                
                 chatTitle.innerHTML = `<i class="bi bi-chat-dots"></i> ${escapeHtml(chat.subject)}`;
-                chatStatus.textContent = `Status: ${chat.status}`;
+                chatStatus.textContent = `Status: ${chat.status.replace('_', ' ')}`;
                 const statusColor = getStatusColor(chat.status);
                 chatStatusBadge.innerHTML = `
                     <span class="status-badge" style="background: ${statusColor}; color: white;">
                         ${chat.status.replace('_', ' ').toUpperCase()}
                     </span>
                 `;
+                
+                if (chat.requires_admin_approval) {
+                    chatStatusBadge.innerHTML += `<br><span class="pending-badge"><i class="bi bi-clock"></i> Pending Approval</span>`;
+                }
 
                 const customerName = chat.customer?.name || 'Customer';
                 const agentName = chat.support_agent?.name || 'Not assigned';
@@ -460,9 +575,217 @@
                         <div class="chat-info-value">${new Date(chat.created_at).toLocaleDateString()}</div>
                     </div>
                 `;
+
+                // Show/hide role-based UI elements
+                setupRoleBasedUI(chat);
             } catch (error) {
                 console.error('Error loading chat:', error);
                 chatInfo.innerHTML = `<p style="color: #ef4444;">Error loading chat details</p>`;
+            }
+        }
+        function setupRoleBasedUI(chat) {
+            const statusManagement = document.getElementById('status-management');
+            const agentAssignment = document.getElementById('agent-assignment');
+            const reviewSection = document.getElementById('review-section');
+            const statusSelect = document.getElementById('status-select');
+            const pendingBadge = document.getElementById('pending-approval-badge');
+
+            console.log('Current user role:', currentUserRole);
+
+            // Hide all by default
+            statusManagement.style.display = 'none';
+            agentAssignment.style.display = 'none';
+            reviewSection.style.display = 'none';
+
+            if (currentUserRole === 'support_agent') {
+                // Agents can change status
+                statusManagement.style.display = 'block';
+                statusSelect.style.display = 'block';
+                statusSelect.value = chat.status;
+                
+                if (chat.requires_admin_approval) {
+                    pendingBadge.style.display = 'block';
+                } else {
+                    pendingBadge.style.display = 'none';
+                }
+
+                statusSelect.addEventListener('change', async (e) => {
+                    await updateStatus(chat.id, e.target.value);
+                });
+            } else if (currentUserRole === 'admin') {
+                // Admin can assign agents
+                console.log('Admin detected - showing agent assignment');
+                agentAssignment.style.display = 'block';
+                loadAgents(chat);
+            } else if (currentUserRole === 'customer' && chat.status === 'closed') {
+                // Customers can review closed chats
+                const existingReview = chat.review;
+                if (!existingReview) {
+                    reviewSection.style.display = 'block';
+                    setupStarRating();
+                }
+            }
+        }
+
+        // Load agents list
+        async function loadAgents(chat) {
+            try {
+                const response = await fetchWithCSRF('/api/admin/agents');
+                if (response.ok) {
+                    agents = await response.json();
+                    const agentSelect = document.getElementById('agent-select');
+                    agentSelect.innerHTML = '<option value="">Select Agent...</option>';
+                    
+                    agents.forEach(agent => {
+                        const option = document.createElement('option');
+                        option.value = agent.id;
+                        option.textContent = `${agent.name} (${agent.active_chats_count || 0} active chats, ★ ${agent.avg_rating || 'N/A'})`;
+                        if (chat.support_agent_id === agent.id) {
+                            option.selected = true;
+                        }
+                        agentSelect.appendChild(option);
+                    });
+
+                    // Remove old event listener by cloning
+                    const newAgentSelect = agentSelect.cloneNode(true);
+                    agentSelect.parentNode.replaceChild(newAgentSelect, agentSelect);
+                    
+                    newAgentSelect.addEventListener('change', async (e) => {
+                        if (e.target.value) {
+                            await assignAgent(chat.id, e.target.value);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+            }
+        }
+
+        // Update chat status
+        async function updateStatus(chatId, status) {
+            try {
+                const response = await fetchWithCSRF(`/api/chats/${chatId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+
+                if (response.ok) {
+                    const chat = await response.json();
+                    if (chat.requires_admin_approval) {
+                        alert('Status change submitted. Awaiting admin approval.');
+                        document.getElementById('pending-approval-badge').style.display = 'block';
+                    } else {
+                        chatStatus.textContent = `Status: ${chat.status.replace('_', ' ')}`;
+                        const statusColor = getStatusColor(chat.status);
+                        chatStatusBadge.innerHTML = `
+                            <span class="status-badge" style="background: ${statusColor}; color: white;">
+                                ${chat.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        `;
+                    }
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Error updating status');
+            }
+        }
+
+        // Assign agent to chat
+        async function assignAgent(chatId, agentId) {
+            try {
+                const response = await fetchWithCSRF(`/api/chats/${chatId}/assign-agent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ support_agent_id: agentId })
+                });
+
+                if (response.ok) {
+                    await loadChat();
+                } else {
+                    alert('Failed to assign agent');
+                }
+            } catch (error) {
+                console.error('Error assigning agent:', error);
+                alert('Error assigning agent');
+            }
+        }
+
+        // Setup star rating
+        function setupStarRating() {
+            const stars = document.querySelectorAll('#star-rating i');
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedRating = parseInt(star.dataset.rating);
+                    updateStars(selectedRating);
+                });
+
+                star.addEventListener('mouseenter', () => {
+                    updateStars(parseInt(star.dataset.rating));
+                });
+            });
+
+            document.getElementById('star-rating').addEventListener('mouseleave', () => {
+                updateStars(selectedRating);
+            });
+
+            document.getElementById('submit-review').addEventListener('click', submitReview);
+        }
+
+        // Update star display
+        function updateStars(rating) {
+            const stars = document.querySelectorAll('#star-rating i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                    star.classList.remove('bi-star');
+                    star.classList.add('bi-star-fill');
+                } else {
+                    star.classList.remove('active');
+                    star.classList.remove('bi-star-fill');
+                    star.classList.add('bi-star');
+                }
+            });
+        }
+
+        // Submit review
+        async function submitReview() {
+            if (selectedRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const comment = document.getElementById('review-comment').value;
+            const submitBtn = document.getElementById('submit-review');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Submitting...';
+
+            try {
+                const response = await fetchWithCSRF(`/api/chats/${chatId}/review`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        rating: selectedRating,
+                        comment: comment || null
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Review submitted successfully!');
+                    document.getElementById('review-section').style.display = 'none';
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.message || 'Failed to submit review'));
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                alert('Error submitting review');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-send"></i> Submit Review';
             }
         }
 

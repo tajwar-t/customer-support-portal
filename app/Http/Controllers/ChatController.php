@@ -77,9 +77,64 @@ class ChatController extends Controller
             'support_agent_id' => 'nullable|exists:users,id',
         ]);
 
+        $user = Auth::user();
+        
+        // If agent changes status, requires admin approval
+        if ($user->role === 'support_agent' && isset($validated['status'])) {
+            $validated['requires_admin_approval'] = true;
+            $validated['admin_approved_at'] = null;
+        }
+        
+        // Admin can approve directly
+        if ($user->role === 'admin') {
+            $validated['requires_admin_approval'] = false;
+            $validated['admin_approved_at'] = now();
+        }
+
         $chat->update($validated);
 
         return response()->json($chat);
+    }
+
+    /**
+     * Approve a status change (admin only).
+     */
+    public function approveStatus(Chat $chat)
+    {
+        $this->authorize('update', $chat);
+        
+        $user = Auth::user();
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $chat->update([
+            'requires_admin_approval' => false,
+            'admin_approved_at' => now(),
+        ]);
+
+        return response()->json($chat);
+    }
+
+    /**
+     * Assign an agent to a chat (admin only).
+     */
+    public function assignAgent(Request $request, Chat $chat)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'support_agent_id' => 'required|exists:users,id',
+        ]);
+
+        $chat->update([
+            'support_agent_id' => $validated['support_agent_id'],
+        ]);
+
+        return response()->json($chat->load(['customer', 'supportAgent']));
     }
 
     /**
@@ -135,5 +190,22 @@ class ChatController extends Controller
         $chat->update(['status' => 'closed']);
 
         return response()->json($chat);
+    }
+
+    /**
+     * Delete a chat.
+     */
+    public function destroy(Chat $chat)
+    {
+        $user = Auth::user();
+        
+        // Only admin or the customer who created the chat can delete it
+        if ($user->role !== 'admin' && $chat->customer_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $chat->delete();
+
+        return response()->json(['message' => 'Chat deleted successfully']);
     }
 }

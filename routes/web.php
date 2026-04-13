@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Middleware\AuthenticateApi;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +49,10 @@ Route::prefix('api')->middleware(AuthenticateApi::class)->group(function () {
     Route::put('/chats/{chat}/close', [ChatController::class, 'close']);
     Route::post('/chats/{chat}/messages', [ChatController::class, 'sendMessage']);
     Route::get('/chats/{chat}/messages', [ChatController::class, 'getMessages']);
+    Route::delete('/chats/{chat}', [ChatController::class, 'destroy']);
+    Route::post('/chats/{chat}/assign-agent', [ChatController::class, 'assignAgent']);
+    Route::post('/chats/{chat}/approve-status', [ChatController::class, 'approveStatus']);
+    Route::post('/chats/{chat}/review', [ReviewController::class, 'store']);
 
     // Forum API routes
     Route::post('/posts', [PostController::class, 'store']);
@@ -60,9 +66,16 @@ Route::prefix('api')->middleware(AuthenticateApi::class)->group(function () {
 
     // Admin routes
     Route::middleware('admin')->group(function () {
+        Route::get('/admin/agents', [AdminController::class, 'getAgents']);
+        Route::get('/admin/pending-approvals', [AdminController::class, 'getPendingApprovals']);
+        Route::get('/admin/stats', [AdminController::class, 'getDashboardStats']);
         Route::get('/comments', [CommentController::class, 'getAllComments']);
         Route::put('/comments/{comment}/approve', [CommentController::class, 'approve']);
+        Route::get('/reviews', [ReviewController::class, 'getAllReviews']);
     });
+
+    // Agent/Customer routes
+    Route::get('/agents/{agentId}/reviews', [ReviewController::class, 'getAgentReviews']);
 });
 
 // Public API routes (no auth required)

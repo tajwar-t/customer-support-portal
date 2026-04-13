@@ -190,6 +190,7 @@
                 const response = await fetchWithCSRF('/api/chats');
                 
                 if (response.status === 401) {
+                    // Session expired or not authenticated
                     window.location.href = '/login';
                     return;
                 }
@@ -225,6 +226,7 @@
                     <div class="empty-state" style="grid-column: 1 / -1;">
                         <i class="bi bi-exclamation-triangle"></i>
                         <p>Error loading chats: ${escapeHtml(error.message)}</p>
+                        <button type="button" class="btn btn-primary" onclick="loadChats()">Retry</button>
                     </div>
                 `;
             }

@@ -225,10 +225,16 @@
         async function loadChat() {
             try {
                 const response = await fetchWithCSRF(`/api/chats/${chatId}`);
+                
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
                 if (!response.ok) throw new Error('Failed to load chat');
                 
                 const chat = await response.json();
-                chatTitle.innerHTML = `<i class="bi bi-chat-dots"></i> ${chat.subject}`;
+                chatTitle.innerHTML = `<i class="bi bi-chat-dots"></i> ${escapeHtml(chat.subject)}`;
                 chatStatus.textContent = `Status: ${chat.status}`;
                 chatStatusBadge.innerHTML = `
                     <span style="display: inline-block; padding: 0.35rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 700; background: ${
@@ -243,10 +249,10 @@
                 
                 chatInfo.innerHTML = `
                     <p style="font-size: 0.9rem; color: #64748b; margin: 0.5rem 0;">
-                        <strong>Customer:</strong><br> ${customerName}
+                        <strong>Customer:</strong><br> ${escapeHtml(customerName)}
                     </p>
                     <p style="font-size: 0.9rem; color: #64748b; margin: 0.5rem 0;">
-                        <strong>Support Agent:</strong><br> ${agentName}
+                        <strong>Support Agent:</strong><br> ${escapeHtml(agentName)}
                     </p>
                     <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.5rem 0;">
                         <i class="bi bi-calendar"></i> ${new Date(chat.created_at).toLocaleDateString()}
@@ -262,6 +268,12 @@
         async function loadMessages() {
             try {
                 const response = await fetchWithCSRF(`/api/chats/${chatId}`);
+                
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
                 if (!response.ok) throw new Error('Failed to load messages');
                 
                 const chat = await response.json();
@@ -313,6 +325,11 @@
                     },
                     body: JSON.stringify({ content })
                 });
+
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
 
                 if (response.ok) {
                     await loadMessages();

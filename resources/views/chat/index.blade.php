@@ -188,13 +188,21 @@
         async function loadChats() {
             try {
                 const response = await fetchWithCSRF('/api/chats');
+                
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
                 const chats = await response.json();
                 
                 if (Array.isArray(chats) && chats.length > 0) {
                     chatListEl.innerHTML = chats.map(chat => `
                         <a href="/chat/${chat.id}" class="chat-item">
-                            <h5>${chat.subject}</h5>
-                            <p>${chat.description.substring(0, 100)}${chat.description.length > 100 ? '...' : ''}</p>
+                            <h5>${escapeHtml(chat.subject)}</h5>
+                            <p>${escapeHtml(chat.description.substring(0, 100))}${chat.description.length > 100 ? '...' : ''}</p>
                             <p style="margin-top: 0.75rem; font-size: 0.85rem; opacity: 0.8;">
                                 <i class="bi bi-calendar"></i> ${new Date(chat.created_at).toLocaleDateString()}
                             </p>
@@ -216,10 +224,22 @@
                 chatListEl.innerHTML = `
                     <div class="empty-state" style="grid-column: 1 / -1;">
                         <i class="bi bi-exclamation-triangle"></i>
-                        <p>Error loading chats</p>
+                        <p>Error loading chats: ${escapeHtml(error.message)}</p>
                     </div>
                 `;
             }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
 
         // Create new chat

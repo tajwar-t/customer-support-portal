@@ -3,15 +3,16 @@
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
+use App\Http\Middleware\AuthenticateApi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+})->middleware(AuthenticateApi::class);
 
-// Chat routes - Support session and Sanctum authentication
-Route::middleware('auth:sanctum')->group(function () {
+// Chat routes - Session-based authentication
+Route::middleware(AuthenticateApi::class)->group(function () {
     // Chat management
     Route::get('/chats', [ChatController::class, 'index']);
     Route::post('/chats', [ChatController::class, 'store']);
@@ -30,7 +31,7 @@ Route::get('/posts/featured', [PostController::class, 'getFeatured']);
 Route::get('/posts/category/{category}', [PostController::class, 'getByCategory']);
 Route::get('/posts/{post}', [PostController::class, 'show']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(AuthenticateApi::class)->group(function () {
     Route::post('/posts', [PostController::class, 'store']);
     Route::put('/posts/{post}', [PostController::class, 'update']);
     Route::delete('/posts/{post}', [PostController::class, 'destroy']);
@@ -39,14 +40,14 @@ Route::middleware('auth:sanctum')->group(function () {
 // Forum - Comments routes
 Route::get('/posts/{post}/comments', [CommentController::class, 'index']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(AuthenticateApi::class)->group(function () {
     Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
     Route::put('/comments/{comment}', [CommentController::class, 'update']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 });
 
 // Admin routes
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+Route::middleware([AuthenticateApi::class, 'admin'])->group(function () {
     Route::get('/comments', [CommentController::class, 'getAllComments']);
     Route::put('/comments/{comment}/approve', [CommentController::class, 'approve']);
 });

@@ -56,12 +56,15 @@
             
             <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-avatar">
+                    <div class="user-avatar user-avatar-{{ auth()->user()->role }}">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <div class="user-details">
                         <div class="user-name">{{ auth()->user()->name }}</div>
-                        <div class="user-role">{{ ucfirst(auth()->user()->role) }}</div>
+                        <div class="user-role-badge user-role-{{ auth()->user()->role }}">
+                            <i class="bi bi-circle-fill"></i>
+                            <span>{{ ucfirst(auth()->user()->role === 'support_agent' ? 'Agent' : auth()->user()->role) }}</span>
+                        </div>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">

@@ -100,9 +100,22 @@
         letter-spacing: 0.5px;
     }
 
-    .badge-primary {
-        background: var(--gradient);
+    .badge-admin {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: white;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-support_agent {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .badge-customer {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
     .dashboard-container {
@@ -249,7 +262,7 @@
             <i class="bi bi-moon-fill"></i>
         </button>
         <div>
-            <span class="badge badge-primary">{{ Auth::user()->role }}</span>
+            <span class="badge badge-{{ Auth::user()->role }}">{{ Auth::user()->role === 'support_agent' ? 'Agent' : Auth::user()->role }}</span>
         </div>
     </div>
 </div>

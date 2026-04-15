@@ -183,13 +183,29 @@
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 50%;
-        background: var(--gradient);
         color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    /* Role-based avatar colors */
+    .user-avatar-admin {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .user-avatar-support_agent {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+
+    .user-avatar-customer {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     }
 
     .user-details {
@@ -216,6 +232,78 @@
         font-size: 0.75rem;
         color: var(--text-tertiary);
         text-transform: capitalize;
+    }
+
+    /* Role badge in sidebar */
+    .user-role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.25rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.375rem;
+    }
+
+    .user-role-badge i {
+        font-size: 0.4rem;
+    }
+
+    .user-role-admin {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .user-role-admin i {
+        color: #ef4444;
+    }
+
+    .user-role-support_agent {
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    .user-role-support_agent i {
+        color: #6366f1;
+    }
+
+    .user-role-customer {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .user-role-customer i {
+        color: #10b981;
+    }
+
+    [data-theme="dark"] .user-role-admin {
+        background: rgba(239, 68, 68, 0.2);
+        color: #f87171;
+    }
+
+    [data-theme="dark"] .user-role-admin i {
+        color: #f87171;
+    }
+
+    [data-theme="dark"] .user-role-support_agent {
+        background: rgba(99, 102, 241, 0.2);
+        color: #818cf8;
+    }
+
+    [data-theme="dark"] .user-role-support_agent i {
+        color: #818cf8;
+    }
+
+    [data-theme="dark"] .user-role-customer {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+    }
+
+    [data-theme="dark"] .user-role-customer i {
+        color: #34d399;
     }
 
     .btn-logout {

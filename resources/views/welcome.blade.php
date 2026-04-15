@@ -9,11 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --primary-dark: #4f46e5;
+            --primary: #0ea5e9;
+            --primary-light: #38bdf8;
+            --primary-dark: #0284c7;
             --secondary: #8b5cf6;
-            --accent: #06b6d4;
+            --accent: #14b8a6;
             --bg-primary: #ffffff;
             --bg-secondary: #f8fafc;
             --bg-tertiary: #f1f5f9;
@@ -22,8 +22,8 @@
             --text-tertiary: #94a3b8;
             --border: #e2e8f0;
             --shadow: rgba(0, 0, 0, 0.05);
-            --shadow-hover: rgba(99, 102, 241, 0.15);
-            --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --shadow-hover: rgba(14, 165, 233, 0.15);
+            --gradient: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
         }
 
         [data-theme="dark"] {
@@ -35,8 +35,8 @@
             --text-tertiary: #64748b;
             --border: #334155;
             --shadow: rgba(0, 0, 0, 0.3);
-            --shadow-hover: rgba(99, 102, 241, 0.25);
-            --gradient: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+            --shadow-hover: rgba(14, 165, 233, 0.25);
+            --gradient: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%);
         }
 
         * {
@@ -246,7 +246,7 @@
             height: 80px;
             background: var(--gradient);
             border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
         }
 
         .feature-card h4 {
@@ -284,6 +284,7 @@
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
+            color: #fff;
         }
 
         footer {
@@ -389,7 +390,7 @@
 
         .auth-form .form-control:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
             outline: none;
             background: var(--bg-primary);
         }
@@ -406,12 +407,12 @@
             transition: all 0.3s ease;
             cursor: pointer;
             font-size: 0.95rem;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
         }
 
         .auth-form .btn-submit:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
         }
 
         .auth-form .btn-submit:disabled {
@@ -585,7 +586,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-chat-dots"></i> Welcome to {{ config('app.name') }}</h5>
+                    <h5 class="modal-title"><i class="bi bi-chat-dots"></i> Welcome</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">

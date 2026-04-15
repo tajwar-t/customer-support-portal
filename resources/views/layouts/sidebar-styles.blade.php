@@ -35,8 +35,12 @@
         border-bottom: 1px solid var(--border);
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         gap: 1rem;
+    }
+
+    .sidebar.collapsed .sidebar-brand{
+        display: none;
     }
 
     .sidebar-brand {
@@ -131,7 +135,7 @@
     .sidebar .nav-link.active {
         background: var(--gradient);
         color: white;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
     }
 
     .sidebar.collapsed .nav-text {

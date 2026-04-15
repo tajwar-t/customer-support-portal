@@ -6,11 +6,11 @@
 @include('layouts.sidebar-styles')
 <style>
     :root {
-        --primary: #6366f1;
-        --primary-light: #818cf8;
-        --primary-dark: #4f46e5;
+        --primary: #0ea5e9;
+        --primary-light: #38bdf8;
+        --primary-dark: #0284c7;
         --secondary: #8b5cf6;
-        --accent: #06b6d4;
+        --accent: #14b8a6;
         --bg-primary: #ffffff;
         --bg-secondary: #f8fafc;
         --bg-tertiary: #f1f5f9;
@@ -19,8 +19,8 @@
         --text-tertiary: #94a3b8;
         --border: #e2e8f0;
         --shadow: rgba(0, 0, 0, 0.05);
-        --shadow-hover: rgba(99, 102, 241, 0.15);
-        --gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --shadow-hover: rgba(14, 165, 233, 0.15);
+        --gradient: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
     }
 
     [data-theme="dark"] {
@@ -32,8 +32,8 @@
         --text-tertiary: #64748b;
         --border: #334155;
         --shadow: rgba(0, 0, 0, 0.3);
-        --shadow-hover: rgba(99, 102, 241, 0.25);
-        --gradient: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+        --shadow-hover: rgba(14, 165, 233, 0.25);
+        --gradient: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%);
     }
 
     * {
@@ -198,7 +198,7 @@
     .chat-input-area input:focus {
         border-color: var(--primary);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
     }
 
     .chat-input-area input:disabled {
@@ -215,14 +215,14 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
         white-space: nowrap;
         flex-shrink: 0;
     }
 
     .btn-send:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        box-shadow: 0 8px 24px rgba(14, 165, 233, 0.4);
     }
 
     .btn-send:disabled {
@@ -300,7 +300,7 @@
     .status-select:focus {
         border-color: var(--primary);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
     }
 
     .agent-assign-section,
@@ -411,7 +411,7 @@
             <div class="agent-assign-section">
                 <h6 style="color: var(--text-primary); font-weight: 700; margin-bottom: 0.5rem;">Approve Status Change</h6>
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Agent requested status change. Click to approve.</p>
-                <button id="approve-status-btn" class="btn-back" style="background: var(--gradient); color: white; border: none; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                <button id="approve-status-btn" class="btn-back" style="background: var(--gradient); color: white; border: none; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);">
                     <i class="bi bi-check-circle"></i> Approve Status Change
                 </button>
             </div>
@@ -518,7 +518,7 @@
             'in_progress': '#f59e0b',
             'closed': '#6b7280'
         };
-        return colors[status] || '#6366f1';
+        return colors[status] || '#0ea5e9';
     }
 
     // Load chat details

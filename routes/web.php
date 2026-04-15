@@ -66,7 +66,9 @@ Route::prefix('api')->middleware(AuthenticateApi::class)->group(function () {
 
     // Admin routes
     Route::middleware('admin')->group(function () {
-        Route::get('/admin/agents', [AdminController::class, 'getAgents']);
+        Route::get('/admin/agents', [AdminController::class, 'getAgents'])->name('admin.agents.index');
+        Route::get('/admin/agents/create', [AdminController::class, 'createAgentForm'])->name('admin.agents.create');
+        Route::post('/admin/agents', [AdminController::class, 'createAgent'])->name('admin.agents.store');
         Route::get('/admin/pending-approvals', [AdminController::class, 'getPendingApprovals']);
         Route::get('/admin/stats', [AdminController::class, 'getDashboardStats']);
         Route::get('/comments', [CommentController::class, 'getAllComments']);

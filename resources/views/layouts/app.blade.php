@@ -43,7 +43,7 @@
                 <div class="sidebar-section-title">
                     <span class="nav-text">Admin</span>
                 </div>
-                <a href="#" class="nav-link">
+                <a href="{{ route('admin.agents.create') }}" class="nav-link {{ request()->routeIs('admin.agents.*') ? 'active' : '' }}">
                     <i class="bi bi-people"></i>
                     <span class="nav-text">Manage Agents</span>
                 </a>

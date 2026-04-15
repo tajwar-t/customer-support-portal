@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Auth\Events\Registered;
 
 class AdminController extends Controller
 {
@@ -83,5 +85,60 @@ class AdminController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Show the create agent form.
+     */
+    public function createAgentForm()
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin') {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('admin.create-agent');
+    }
+
+    /**
+     * Create a new support agent account.
+     */
+    public function createAgent(Request $request)
+    {
+        $user = Auth::user();
+        if ($user->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $agent = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'support_agent',
+        ]);
+
+        event(new Registered($agent));
+
+        // Check if the request expects JSON (API call) or redirect (web form)
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'message' => 'Agent account created successfully',
+                'agent' => [
+                    'id' => $agent->id,
+                    'name' => $agent->name,
+                    'email' => $agent->email,
+                    'role' => $agent->role,
+                ]
+            ], 201);
+        }
+
+        return redirect()->route('admin.agents.create')
+            ->with('success', 'Agent account created successfully');
     }
 }
